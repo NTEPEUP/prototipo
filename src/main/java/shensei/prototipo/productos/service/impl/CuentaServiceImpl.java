@@ -1,0 +1,89 @@
+package shensei.prototipo.productos.service.impl;
+
+import org.springframework.stereotype.Service;
+import shensei.prototipo.productos.dto.CuentaDTO;
+import shensei.prototipo.productos.entity.Cuenta;
+import shensei.prototipo.productos.repository.CuentaRepository;
+import shensei.prototipo.productos.service.CuentaService;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Service
+public class CuentaServiceImpl implements CuentaService {
+
+    private final CuentaRepository repo;
+
+    public CuentaServiceImpl(CuentaRepository repo) {
+        this.repo = repo;
+    }
+
+    private CuentaDTO toDto(Cuenta c) {
+        if (c == null) return null;
+        CuentaDTO dto = new CuentaDTO();
+        dto.setIdCuenta(c.getIdCuenta());
+        dto.setNumeroCuenta(c.getNumeroCuenta());
+        dto.setIdCliente(c.getIdCliente());
+        dto.setTipoCuenta(c.getTipoCuenta());
+        dto.setSaldo(c.getSaldo());
+        dto.setEstado(c.getEstado());
+        dto.setFechaApertura(c.getFechaApertura());
+        return dto;
+    }
+
+    private Cuenta toEntity(CuentaDTO dto) {
+        if (dto == null) return null;
+        Cuenta c = new Cuenta();
+        c.setIdCuenta(dto.getIdCuenta());
+        c.setNumeroCuenta(dto.getNumeroCuenta());
+        c.setIdCliente(dto.getIdCliente());
+        c.setTipoCuenta(dto.getTipoCuenta());
+        c.setSaldo(dto.getSaldo());
+        c.setEstado(dto.getEstado());
+        c.setFechaApertura(dto.getFechaApertura());
+        return c;
+    }
+
+    @Override
+    public List<CuentaDTO> findAll() {
+        return repo.findAll().stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<CuentaDTO> findById(Integer id) {
+        return repo.findById(id).map(this::toDto);
+    }
+
+    @Override
+    public CuentaDTO create(CuentaDTO dto) {
+        Cuenta c = toEntity(dto);
+        Cuenta saved = repo.save(c);
+        return toDto(saved);
+    }
+
+    @Override
+    public Optional<CuentaDTO> update(Integer id, CuentaDTO dto) {
+        return repo.findById(id).map(existing -> {
+            existing.setNumeroCuenta(dto.getNumeroCuenta());
+            existing.setIdCliente(dto.getIdCliente());
+            existing.setTipoCuenta(dto.getTipoCuenta());
+            existing.setSaldo(dto.getSaldo());
+            existing.setEstado(dto.getEstado());
+            existing.setFechaApertura(dto.getFechaApertura());
+            Cuenta saved = repo.save(existing);
+            return toDto(saved);
+        });
+    }
+
+    @Override
+    public void deleteById(Integer id) {
+        repo.deleteById(id);
+    }
+
+    @Override
+    public Optional<CuentaDTO> findByNumeroCuenta(String numeroCuenta) {
+        return repo.findByNumeroCuenta(numeroCuenta).map(this::toDto);
+    }
+}
+
