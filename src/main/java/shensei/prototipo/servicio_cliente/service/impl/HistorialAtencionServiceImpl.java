@@ -74,5 +74,10 @@ public class HistorialAtencionServiceImpl implements HistorialAtencionService {
     public void deleteById(Integer id) {
         repo.deleteById(id);
     }
+
+    @Override
+    public List<HistorialAtencionDTO> findByIdCliente(Integer idCliente) {
+        return repo.findByIdCliente(idCliente).stream().map(this::toDto).collect(Collectors.toList());
+    }
 }
 

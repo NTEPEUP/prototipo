@@ -28,6 +28,11 @@ public class HistorialAtencionController {
         return service.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/cliente/{idCliente}")
+    public ResponseEntity<List<HistorialAtencionDTO>> getByCliente(@PathVariable Integer idCliente) {
+        return ResponseEntity.ok(service.findByIdCliente(idCliente));
+    }
+
     @PostMapping
     public ResponseEntity<HistorialAtencionDTO> create(@RequestBody HistorialAtencionDTO dto) {
         HistorialAtencionDTO created = service.create(dto);

@@ -10,6 +10,7 @@ public interface ClienteService {
     Optional<Cliente> findById(Integer id);
     Cliente save(Cliente cliente);
     void deleteById(Integer id);
+    Optional<Cliente> findByCodigoCliente(String codigoCliente);
     Optional<Cliente> findByDpi(String dpi);
 }
 

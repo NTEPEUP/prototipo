@@ -7,5 +7,7 @@ import shensei.prototipo.servicio_cliente.entity.Reclamo;
 @Repository
 public interface ReclamoRepository extends JpaRepository<Reclamo, Integer> {
 
+	java.util.List<Reclamo> findByIdCliente(Integer idCliente);
+
 }
 

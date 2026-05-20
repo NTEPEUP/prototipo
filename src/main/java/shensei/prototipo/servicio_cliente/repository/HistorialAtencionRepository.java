@@ -7,5 +7,7 @@ import shensei.prototipo.servicio_cliente.entity.HistorialAtencion;
 @Repository
 public interface HistorialAtencionRepository extends JpaRepository<HistorialAtencion, Integer> {
 
+	java.util.List<HistorialAtencion> findByIdCliente(Integer idCliente);
+
 }
 

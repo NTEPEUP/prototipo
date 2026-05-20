@@ -28,6 +28,11 @@ public class ReclamoController {
         return service.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/cliente/{idCliente}")
+    public ResponseEntity<List<ReclamoDTO>> getByCliente(@PathVariable Integer idCliente) {
+        return ResponseEntity.ok(service.findByIdCliente(idCliente));
+    }
+
     @PostMapping
     public ResponseEntity<ReclamoDTO> create(@RequestBody ReclamoDTO dto) {
         ReclamoDTO created = service.create(dto);

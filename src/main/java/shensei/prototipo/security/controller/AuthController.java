@@ -55,9 +55,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest req) {
         Authentication auth = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword()));
-
-        List<String> roles = auth.getAuthorities().stream().map(GrantedAuthority::getAuthority).map(s -> s.replace("ROLE_", "")).collect(Collectors.toList());
-        String roleName = roles.isEmpty() ? null : roles.getFirst();
+        List<String> roles = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .map(s -> s.replace("ROLE_", ""))
+                .collect(Collectors.toList());
+        String roleName = roles.isEmpty() ? null : roles.get(0);
 
         String token = jwtUtil.generateToken(req.getUsername(), roles);
 
@@ -66,17 +68,28 @@ public class AuthController {
 
         Usuario usuario = usuarioRepository.findByUsername(req.getUsername()).orElse(null);
         if (usuario != null) {
-            java.util.Optional<ClienteUsuario> optCu = clienteUsuarioRepository.findById_IdUsuario(usuario.getIdUsuario());
-            if (optCu.isPresent()) {
-                Cliente cliente = clienteRepository.findById(optCu.get().getId().getIdCliente()).orElse(null);
-                if (cliente != null) {
-                    nombres = cliente.getNombres();
-                    apellidos = cliente.getApellidos();
+            // Preferir nombres/apellidos almacenados en security.usuario si existen
+            if (usuario.getNombres() != null && !usuario.getNombres().trim().isEmpty()) {
+                nombres = usuario.getNombres();
+            }
+            if (usuario.getApellidos() != null && !usuario.getApellidos().trim().isEmpty()) {
+                apellidos = usuario.getApellidos();
+            }
+
+            // Si no existen en usuario, intentar obtener desde la ficha Cliente vinculada
+            if (nombres == null || apellidos == null) {
+                java.util.Optional<ClienteUsuario> optCu = clienteUsuarioRepository.findById_IdUsuario(usuario.getIdUsuario());
+                if (optCu.isPresent()) {
+                    Cliente cliente = clienteRepository.findById(optCu.get().getId().getIdCliente()).orElse(null);
+                    if (cliente != null) {
+                        if (nombres == null) nombres = cliente.getNombres();
+                        if (apellidos == null) apellidos = cliente.getApellidos();
+                    }
                 }
             }
         }
 
-        return ResponseEntity.ok(new AuthResponse(token, roleName, nombres, apellidos, req.getUsername()));
+        return ResponseEntity.ok(new AuthResponse(token, roleName, nombres, apellidos));
     }
 
     @PostMapping("/register")
@@ -125,14 +138,12 @@ public class AuthController {
         private String roleName;
         private String nombres;
         private String apellidos;
-        private String username;
 
-        public AuthResponse(String token, String roleName, String nombres, String apellidos, String username) {
+        public AuthResponse(String token, String roleName, String nombres, String apellidos) {
             this.token = token;
             this.roleName = roleName;
             this.nombres = nombres;
             this.apellidos = apellidos;
-            this.username = username;
         }
 
         public String getToken() { return token; }
@@ -143,8 +154,6 @@ public class AuthController {
         public void setNombres(String nombres) { this.nombres = nombres; }
         public String getApellidos() { return apellidos; }
         public void setApellidos(String apellidos) { this.apellidos = apellidos; }
-        public String getUsername() { return username; }
-        public void setUsername(String username) { this.username = username; }
     }
 
     public static class RegisterResponse {

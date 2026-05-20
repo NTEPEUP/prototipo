@@ -38,6 +38,11 @@ public class ClienteServiceImpl implements ClienteService {
     }
 
     @Override
+    public Optional<Cliente> findByCodigoCliente(String codigoCliente) {
+        return clienteRepository.findByCodigoCliente(codigoCliente);
+    }
+
+    @Override
     public Optional<Cliente> findByDpi(String dpi) {
         return clienteRepository.findByDpi(dpi);
     }

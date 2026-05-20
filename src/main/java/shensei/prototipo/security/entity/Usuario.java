@@ -23,16 +23,20 @@ public class Usuario {
 
     @Column(name = "password", length = 255, nullable = false)
     private String password;
-    @Column(name = "telefono", length = 20, nullable = false)
+
+    @Column(name = "telefono", length = 20)
     private String telefono;
-    @Column(name = "direccion", length = 255, nullable = false)
+
+    @Column(name = "direccion", length = 255)
     private String direccion;
-    @Column(name = "correo", length = 255, nullable = false)
+
+    @Column(name = "correo", length = 255)
     private String correo;
 
-    @Column(name ="nombres", length=255, nullable = false)
+    @Column(name = "nombres", length = 255)
     private String nombres;
-    @Column (name = "apellidos", length = 255, nullable = false)
+
+    @Column(name = "apellidos", length = 255)
     private String apellidos;
 
     @Column(name = "estado")

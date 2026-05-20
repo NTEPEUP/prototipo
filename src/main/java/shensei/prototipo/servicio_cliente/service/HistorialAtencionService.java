@@ -11,5 +11,6 @@ public interface HistorialAtencionService {
     HistorialAtencionDTO create(HistorialAtencionDTO dto);
     Optional<HistorialAtencionDTO> update(Integer id, HistorialAtencionDTO dto);
     void deleteById(Integer id);
+    List<HistorialAtencionDTO> findByIdCliente(Integer idCliente);
 }
 

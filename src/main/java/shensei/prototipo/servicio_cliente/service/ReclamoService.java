@@ -11,5 +11,6 @@ public interface ReclamoService {
     ReclamoDTO create(ReclamoDTO dto);
     Optional<ReclamoDTO> update(Integer id, ReclamoDTO dto);
     void deleteById(Integer id);
+    List<ReclamoDTO> findByIdCliente(Integer idCliente);
 }
 

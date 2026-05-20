@@ -11,6 +11,7 @@ public interface TarjetaService {
     TarjetaDTO create(TarjetaDTO dto);
     Optional<TarjetaDTO> update(Integer id, TarjetaDTO dto);
     void deleteById(Integer id);
+    List<TarjetaDTO> findByIdCliente(Integer idCliente);
     Optional<TarjetaDTO> findByNumeroTarjeta(String numeroTarjeta);
 }
 

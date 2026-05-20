@@ -30,6 +30,26 @@ public class ClienteController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/codigo/{codigoCliente}")
+    public ResponseEntity<Cliente> getByCodigoCliente(@PathVariable String codigoCliente) {
+        if (codigoCliente == null || codigoCliente.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return clienteService.findByCodigoCliente(codigoCliente.trim())
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/dpi/{dpi}")
+    public ResponseEntity<Cliente> getByDpi(@PathVariable String dpi) {
+        if (dpi == null || dpi.trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        return clienteService.findByDpi(dpi.trim())
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
     @PostMapping
     public ResponseEntity<Cliente> create(@RequestBody Cliente cliente) {
         Cliente saved = clienteService.save(cliente);

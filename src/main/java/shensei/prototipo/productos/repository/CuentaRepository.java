@@ -8,6 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface CuentaRepository extends JpaRepository<Cuenta, Integer> {
+    java.util.List<Cuenta> findByIdCliente(Integer idCliente);
     Optional<Cuenta> findByNumeroCuenta(String numeroCuenta);
 }
 

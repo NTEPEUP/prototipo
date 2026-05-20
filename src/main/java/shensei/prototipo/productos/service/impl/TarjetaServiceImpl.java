@@ -85,8 +85,14 @@ public class TarjetaServiceImpl implements TarjetaService {
     }
 
     @Override
+    public List<TarjetaDTO> findByIdCliente(Integer idCliente) {
+        return repo.findByIdCliente(idCliente).stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<TarjetaDTO> findByNumeroTarjeta(String numeroTarjeta) {
         return repo.findByNumeroTarjeta(numeroTarjeta).map(this::toDto);
     }
 }
+
 

@@ -8,6 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface TarjetaRepository extends JpaRepository<Tarjeta, Integer> {
+    java.util.List<Tarjeta> findByIdCliente(Integer idCliente);
     Optional<Tarjeta> findByNumeroTarjeta(String numeroTarjeta);
 }
 
