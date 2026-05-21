@@ -11,5 +11,7 @@ public interface PrestamoService {
     PrestamoDTO create(PrestamoDTO dto);
     Optional<PrestamoDTO> update(Integer id, PrestamoDTO dto);
     void deleteById(Integer id);
+    List<PrestamoDTO> findByIdCliente(Integer idCliente);
 }
+
 

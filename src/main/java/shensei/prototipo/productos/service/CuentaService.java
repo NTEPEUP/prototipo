@@ -1,6 +1,7 @@
 package shensei.prototipo.productos.service;
 
 import shensei.prototipo.productos.dto.CuentaDTO;
+import shensei.prototipo.productos.dto.ValidacionCuentaDTO;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +12,8 @@ public interface CuentaService {
     CuentaDTO create(CuentaDTO dto);
     Optional<CuentaDTO> update(Integer id, CuentaDTO dto);
     void deleteById(Integer id);
+    List<CuentaDTO> findByIdCliente(Integer idCliente);
     Optional<CuentaDTO> findByNumeroCuenta(String numeroCuenta);
+    Optional<ValidacionCuentaDTO> validarPorNumeroCuenta(String numeroCuenta);
 }
 

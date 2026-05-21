@@ -37,7 +37,8 @@ public class Prestamo {
     @Column(name = "estado", length = 20)
     private String estado = "ACTIVO";
 
-    @Column(name = "fecha_creacion")
+    @Column(name = "fecha_creacion",insertable = false,
+            updatable = false)
     private LocalDateTime fechaCreacion;
 
 }

@@ -2,9 +2,12 @@ package shensei.prototipo.productos.service.impl;
 
 import org.springframework.stereotype.Service;
 import shensei.prototipo.productos.dto.CuentaDTO;
+import shensei.prototipo.productos.dto.ValidacionCuentaDTO;
 import shensei.prototipo.productos.entity.Cuenta;
 import shensei.prototipo.productos.repository.CuentaRepository;
 import shensei.prototipo.productos.service.CuentaService;
+import shensei.prototipo.cliente.entity.Cliente;
+import shensei.prototipo.cliente.repository.ClienteRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,9 +17,11 @@ import java.util.stream.Collectors;
 public class CuentaServiceImpl implements CuentaService {
 
     private final CuentaRepository repo;
+    private final ClienteRepository clienteRepository;
 
-    public CuentaServiceImpl(CuentaRepository repo) {
+    public CuentaServiceImpl(CuentaRepository repo, ClienteRepository clienteRepository) {
         this.repo = repo;
+        this.clienteRepository = clienteRepository;
     }
 
     private CuentaDTO toDto(Cuenta c) {
@@ -82,8 +87,29 @@ public class CuentaServiceImpl implements CuentaService {
     }
 
     @Override
+    public List<CuentaDTO> findByIdCliente(Integer idCliente) {
+        return repo.findByIdCliente(idCliente).stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @Override
     public Optional<CuentaDTO> findByNumeroCuenta(String numeroCuenta) {
         return repo.findByNumeroCuenta(numeroCuenta).map(this::toDto);
     }
+
+    @Override
+    public Optional<ValidacionCuentaDTO> validarPorNumeroCuenta(String numeroCuenta) {
+        return repo.findByNumeroCuenta(numeroCuenta).flatMap(cuenta ->
+                clienteRepository.findById(cuenta.getIdCliente()).map(cliente -> {
+                    ValidacionCuentaDTO dto = new ValidacionCuentaDTO();
+                    dto.setNumeroCuenta(cuenta.getNumeroCuenta());
+                    dto.setTipoCuenta(cuenta.getTipoCuenta());
+                    dto.setIdCliente(cliente.getIdCliente());
+                    dto.setNombreCliente((cliente.getNombres() != null ? cliente.getNombres() : "")
+                            + ((cliente.getApellidos() != null && !cliente.getApellidos().isBlank()) ? " " + cliente.getApellidos() : ""));
+                    return dto;
+                })
+        );
+    }
 }
+
 

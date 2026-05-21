@@ -9,5 +9,7 @@ public class TransferRequest {
     private String cuentaDestino;
     private BigDecimal monto;
     private String descripcion;
+    // optional token provided by user to confirm an external transfer
+    private String token;
 }
 

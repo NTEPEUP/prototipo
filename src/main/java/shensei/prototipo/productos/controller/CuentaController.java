@@ -3,6 +3,7 @@ package shensei.prototipo.productos.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import shensei.prototipo.productos.dto.CuentaDTO;
+import shensei.prototipo.productos.dto.ValidacionCuentaDTO;
 import shensei.prototipo.productos.service.CuentaService;
 
 import java.net.URI;
@@ -26,6 +27,18 @@ public class CuentaController {
     @GetMapping("/{id}")
     public ResponseEntity<CuentaDTO> get(@PathVariable Integer id) {
         return service.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/cliente/{idCliente}")
+    public ResponseEntity<List<CuentaDTO>> findByIdCliente(@PathVariable Integer idCliente) {
+        return ResponseEntity.ok(service.findByIdCliente(idCliente));
+    }
+
+    @GetMapping("/validar/{numeroCuenta}")
+    public ResponseEntity<ValidacionCuentaDTO> validarPorNumeroCuenta(@PathVariable String numeroCuenta) {
+        return service.validarPorNumeroCuenta(numeroCuenta)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping

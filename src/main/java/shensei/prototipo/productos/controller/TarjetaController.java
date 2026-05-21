@@ -28,6 +28,11 @@ public class TarjetaController {
         return service.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/cliente/{idCliente}")
+    public ResponseEntity<List<TarjetaDTO>> findByCliente(@PathVariable Integer idCliente) {
+        return ResponseEntity.ok(service.findByIdCliente(idCliente));
+    }
+
     @PostMapping
     public ResponseEntity<TarjetaDTO> create(@RequestBody TarjetaDTO dto) {
         TarjetaDTO created = service.create(dto);

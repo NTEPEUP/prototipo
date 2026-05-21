@@ -83,5 +83,10 @@ public class PrestamoServiceImpl implements PrestamoService {
     public void deleteById(Integer id) {
         repo.deleteById(id);
     }
+
+    @Override
+    public List<PrestamoDTO> findByIdCliente(Integer idCliente) {
+        return repo.findByIdCliente(idCliente).stream().map(this::toDto).collect(Collectors.toList());
+    }
 }
 

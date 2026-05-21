@@ -19,7 +19,8 @@ public class Cuenta {
     @Column(name = "id_cuenta")
     private Integer idCuenta;
 
-    @Column(name = "numero_cuenta", length = 30, unique = true, nullable = false)
+    @Column(name = "numero_cuenta", length = 30, unique = true, nullable = false, insertable = false,
+            updatable = false)
     private String numeroCuenta;
 
     @Column(name = "id_cliente", nullable = false)
@@ -34,7 +35,8 @@ public class Cuenta {
     @Column(name = "estado", length = 20)
     private String estado = "ACTIVA";
 
-    @Column(name = "fecha_apertura")
+    @Column(name = "fecha_apertura", insertable = false,
+    updatable = false)
     private LocalDateTime fechaApertura;
 
 }

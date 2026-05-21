@@ -65,6 +65,7 @@ public class AuthController {
 
         String nombres = null;
         String apellidos = null;
+        Integer idCliente = null;
 
         Usuario usuario = usuarioRepository.findByUsername(req.getUsername()).orElse(null);
         if (usuario != null) {
@@ -76,11 +77,18 @@ public class AuthController {
                 apellidos = usuario.getApellidos();
             }
 
-            // Si no existen en usuario, intentar obtener desde la ficha Cliente vinculada
-            if (nombres == null || apellidos == null) {
-                java.util.Optional<ClienteUsuario> optCu = clienteUsuarioRepository.findById_IdUsuario(usuario.getIdUsuario());
-                if (optCu.isPresent()) {
-                    Cliente cliente = clienteRepository.findById(optCu.get().getId().getIdCliente()).orElse(null);
+            // Resolver relación cliente-usuario sin depender de nombres/apellidos.
+            java.util.Optional<ClienteUsuario> optCu = clienteUsuarioRepository.findById_IdUsuario(usuario.getIdUsuario());
+            if (optCu.isPresent()) {
+                Integer linkedIdCliente = optCu.get().getId().getIdCliente();
+
+                if (roles.stream().anyMatch(r -> "CLIENTE".equalsIgnoreCase(r))) {
+                    idCliente = linkedIdCliente;
+                }
+
+                // Si faltan nombres/apellidos, intentar obtenerlos desde cliente.
+                if (nombres == null || apellidos == null) {
+                    Cliente cliente = clienteRepository.findById(linkedIdCliente).orElse(null);
                     if (cliente != null) {
                         if (nombres == null) nombres = cliente.getNombres();
                         if (apellidos == null) apellidos = cliente.getApellidos();
@@ -89,7 +97,7 @@ public class AuthController {
             }
         }
 
-        return ResponseEntity.ok(new AuthResponse(token, roleName, nombres, apellidos));
+        return ResponseEntity.ok(new AuthResponse(token, roleName, nombres, apellidos, idCliente));
     }
 
     @PostMapping("/register")
@@ -138,12 +146,14 @@ public class AuthController {
         private String roleName;
         private String nombres;
         private String apellidos;
+        private Integer idCliente;
 
-        public AuthResponse(String token, String roleName, String nombres, String apellidos) {
+        public AuthResponse(String token, String roleName, String nombres, String apellidos, Integer idCliente) {
             this.token = token;
             this.roleName = roleName;
             this.nombres = nombres;
             this.apellidos = apellidos;
+            this.idCliente = idCliente;
         }
 
         public String getToken() { return token; }
@@ -154,6 +164,8 @@ public class AuthController {
         public void setNombres(String nombres) { this.nombres = nombres; }
         public String getApellidos() { return apellidos; }
         public void setApellidos(String apellidos) { this.apellidos = apellidos; }
+        public Integer getIdCliente() { return idCliente; }
+        public void setIdCliente(Integer idCliente) { this.idCliente = idCliente; }
     }
 
     public static class RegisterResponse {
