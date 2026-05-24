@@ -18,11 +18,18 @@ public class Reclamo {
     @Column(name = "id_reclamo")
     private Integer idReclamo;
 
+    @Column(name = "codigo_reclamo", length = 30, unique = true, insertable = false,
+            updatable = false)
+    private String codigoReclamo;
+
     @Column(name = "id_cliente", nullable = false)
     private Integer idCliente;
 
-    @Column(name = "tipo_reclamo", length = 100)
-    private String tipoReclamo;
+    @Column(name = "tipo_caso", length = 100)
+    private String tipoCaso;
+
+    @Column(name = "categoria")
+    private String categoria;
 
     @Column(name = "descripcion", columnDefinition = "TEXT")
     private String descripcion;

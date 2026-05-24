@@ -39,7 +39,7 @@ public class PrestamoServiceImpl implements PrestamoService {
         p.setIdPrestamo(dto.getIdPrestamo());
         p.setIdCliente(dto.getIdCliente());
         p.setMonto(dto.getMonto());
-        p.setSaldoPendiente(dto.getSaldoPendiente());
+        p.setSaldoPendiente(dto.getMonto());//para crear el saldo pendiente es igual al monto, luego se va reduciendo a medida que se pagan cuotas
         p.setTasaInteres(dto.getTasaInteres());
         p.setPlazoMeses(dto.getPlazoMeses());
         p.setEstado(dto.getEstado());

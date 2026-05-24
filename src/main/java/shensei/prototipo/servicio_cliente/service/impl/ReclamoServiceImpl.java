@@ -24,7 +24,9 @@ public class ReclamoServiceImpl implements ReclamoService {
         ReclamoDTO dto = new ReclamoDTO();
         dto.setIdReclamo(r.getIdReclamo());
         dto.setIdCliente(r.getIdCliente());
-        dto.setTipoReclamo(r.getTipoReclamo());
+        dto.setTipoCaso(r.getTipoCaso());
+        dto.setCategoria(r.getCategoria());
+        dto.setCodigoReclamo(r.getCodigoReclamo());
         dto.setDescripcion(r.getDescripcion());
         dto.setEstado(r.getEstado());
         dto.setFechaCreacion(r.getFechaCreacion());
@@ -36,7 +38,9 @@ public class ReclamoServiceImpl implements ReclamoService {
         Reclamo r = new Reclamo();
         r.setIdReclamo(dto.getIdReclamo());
         r.setIdCliente(dto.getIdCliente());
-        r.setTipoReclamo(dto.getTipoReclamo());
+        r.setTipoCaso(dto.getTipoCaso());
+        r.setCategoria(dto.getCategoria());
+        r.setCodigoReclamo(dto.getCodigoReclamo());
         r.setDescripcion(dto.getDescripcion());
         r.setEstado(dto.getEstado());
         r.setFechaCreacion(dto.getFechaCreacion());
@@ -64,7 +68,8 @@ public class ReclamoServiceImpl implements ReclamoService {
     public Optional<ReclamoDTO> update(Integer id, ReclamoDTO dto) {
         return repo.findById(id).map(existing -> {
             existing.setIdCliente(dto.getIdCliente());
-            existing.setTipoReclamo(dto.getTipoReclamo());
+            existing.setTipoCaso(dto.getTipoCaso());
+            existing.setCategoria(dto.getCategoria());
             existing.setDescripcion(dto.getDescripcion());
             existing.setEstado(dto.getEstado());
             existing.setFechaCreacion(dto.getFechaCreacion());

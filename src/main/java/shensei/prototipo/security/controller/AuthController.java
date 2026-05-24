@@ -100,7 +100,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token, roleName, nombres, apellidos, idCliente));
     }
 
-    @PostMapping("/register")
+   /*@PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
         // Validar que el usuario no exista
         if (usuarioRepository.findByUsername(req.getUsername()).isPresent()) {
@@ -119,6 +119,11 @@ public class AuthController {
         usuario.setPassword(passwordEncoder.encode(req.getPassword())); // BCrypt automático
         usuario.setEstado(true);
         usuario.setFechaCreacion(LocalDateTime.now());
+        usuario.setDireccion(req.getDireccion());
+        usuario.setTelefono(req.getTelefono());
+        usuario.setCorreo(req.getCorreo());
+        usuario.setNombres(req.getNombres());
+        usuario.setApellidos(req.getApellidos());
 
         Usuario saved = usuarioRepository.save(usuario);
 
@@ -129,16 +134,107 @@ public class AuthController {
         usuarioRolRepository.save(ur);
 
         return ResponseEntity.ok().body(new RegisterResponse(saved.getIdUsuario(), req.getUsername(), req.getRoleName()));
-    }
+    }**/
+   @PostMapping("/register")
+   public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
+
+       // Validar que el usuario no exista
+       if (usuarioRepository.findByUsername(req.getUsername()).isPresent()) {
+           return ResponseEntity.badRequest().body("El usuario ya existe");
+       }
+
+       // Validar que el rol exista
+       Rol rol = rolRepository.findByNombre(req.getRoleName()).orElse(null);
+       if (rol == null) {
+           return ResponseEntity.badRequest()
+                   .body("Rol no encontrado: " + req.getRoleName());
+       }
+
+       // Crear usuario
+       Usuario usuario = new Usuario();
+       usuario.setUsername(req.getUsername());
+       usuario.setPassword(passwordEncoder.encode(req.getPassword()));
+       usuario.setEstado(true);
+       usuario.setFechaCreacion(LocalDateTime.now());
+       usuario.setDireccion(req.getDireccion());
+       usuario.setTelefono(req.getTelefono());
+       usuario.setCorreo(req.getCorreo());
+       usuario.setNombres(req.getNombres());
+       usuario.setApellidos(req.getApellidos());
+
+       Usuario saved = usuarioRepository.save(usuario);
+
+       // Asignar rol
+       UsuarioRol.UsuarioRolId usuarioRolId =
+               new UsuarioRol.UsuarioRolId(
+                       saved.getIdUsuario(),
+                       rol.getIdRol()
+               );
+
+       Usuario usuarioRol = null;
+
+       UsuarioRol ur = new UsuarioRol();
+       ur.setId(usuarioRolId);
+
+       usuarioRolRepository.save(ur);
+
+       // Si el rol es CLIENTE, registrar relación en tabla intermedia
+       if ("CLIENTE".equalsIgnoreCase(req.getRoleName())) {
+
+           if (req.getIdCliente() == null) {
+               return ResponseEntity.badRequest()
+                       .body("Debe enviar idCliente para registrar un usuario CLIENTE");
+           }
+           System.out.println("ID CLIENTE RECIBIDO: " + req.getIdCliente());
+           Cliente cliente = clienteRepository.findById(req.getIdCliente())
+                   .orElseThrow(() ->
+                           new RuntimeException("Cliente no encontrado con ID: " + req.getIdCliente())
+                   );
+
+           ClienteUsuario clienteUsuario = new ClienteUsuario(
+                   new ClienteUsuario.ClienteUsuarioId(
+                           cliente.getIdCliente(),
+                           saved.getIdUsuario()
+                   )
+           );
+
+           clienteUsuarioRepository.save(clienteUsuario);
+       }
+
+       return ResponseEntity.ok(
+               new RegisterResponse(
+                       saved.getIdUsuario(),
+                       saved.getUsername(),
+                       req.getRoleName()
+               )
+       );
+   }
+
+
 
     public static class AuthRequest {
         private String username;
         private String password;
+        private String direccion;
+        private String telefono;
+        private String correo;
+        private String nombres;
+        private String apellidos;
 
         public String getUsername() { return username; }
         public void setUsername(String username) { this.username = username; }
         public String getPassword() { return password; }
         public void setPassword(String password) { this.password = password; }
+        public String getDireccion() { return direccion; }
+        public void setDireccion(String direccion) { this.direccion = direccion; }
+        public String getTelefono() { return telefono; }
+        public void setTelefono(String telefono) { this.telefono = telefono; }
+        public String getCorreo() { return correo; }
+        public void setCorreo(String correo) { this.correo = correo; }
+        public String getNombres() { return nombres; }
+        public void setNombres(String nombres) { this.nombres = nombres; }
+        public String getApellidos() { return apellidos; }
+        public void setApellidos(String apellidos) { this.apellidos = apellidos; }
     }
 
     public static class AuthResponse {
