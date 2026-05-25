@@ -1,54 +1,75 @@
 package shensei.prototipo.mail;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class EmailService {
 
-    private final JavaMailSender mailSender;
+    @Value("${mailtrap.api.token}")
+    private String apiToken;
+
+    @Value("${mailtrap.api.url}")
+    private String apiUrl;
 
     @Value("${app.mail.from}")
     private String from;
 
-    public EmailService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
+    private final RestTemplate restTemplate = new RestTemplate();
 
-    // CORREO SIMPLE
+    // 📩 CORREO SIMPLE
     public void sendSimpleMessage(String to, String subject, String text) {
-        SimpleMailMessage message = new SimpleMailMessage();
-
-        message.setFrom(from);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
-
-        mailSender.send(message);
+        sendEmail(to, subject, text, false);
     }
 
-    // CORREO HTML
+    // 📩 CORREO HTML
     public void sendHtmlMessage(String to, String subject, String html) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
+        sendEmail(to, subject, html, true);
+    }
 
-            helper.setFrom(from);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(html, true);
+    // 🔥 MÉTODO CENTRAL
+    private void sendEmail(String to, String subject, String content, boolean isHtml) {
 
-            mailSender.send(message);
+        Map<String, Object> request = new HashMap<>();
 
-        } catch (MessagingException e) {
-            throw new RuntimeException("No se pudo enviar correo HTML", e);
+        // FROM
+        request.put("from", Map.of(
+                "email", from,
+                "name", "Shensei Prototipo"
+        ));
+
+        // TO
+        request.put("to", new Object[]{
+                Map.of("email", to)
+        });
+
+        request.put("subject", subject);
+
+        if (isHtml) {
+            request.put("html", content);
+        } else {
+            request.put("text", content);
+        }
+
+        // HEADERS
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer " + apiToken);
+
+        HttpEntity<Map<String, Object>> entity =
+                new HttpEntity<>(request, headers);
+
+        // REQUEST
+        ResponseEntity<String> response =
+                restTemplate.exchange(apiUrl, HttpMethod.POST, entity, String.class);
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException("Error enviando correo: " + response.getBody());
         }
     }
 }
-
