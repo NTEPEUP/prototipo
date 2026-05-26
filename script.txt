@@ -1,0 +1,551 @@
+-- =========================================================
+-- CREACIÓN DE ESQUEMAS
+-- =========================================================
+
+CREATE SCHEMA security;
+CREATE SCHEMA clientes;
+CREATE SCHEMA productos;
+CREATE SCHEMA transacciones;
+CREATE SCHEMA servicio_cliente;
+CREATE SCHEMA auditoria;
+
+-- =========================================================
+-- SECURITY
+-- =========================================================
+
+CREATE TABLE security.usuario (
+                                  id_usuario SERIAL PRIMARY KEY,
+                                  username VARCHAR(50) UNIQUE NOT NULL,
+                                  password VARCHAR(255) NOT NULL,
+                                  estado BOOLEAN DEFAULT TRUE,
+                                  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE security.rol (
+                              id_rol SERIAL PRIMARY KEY,
+                              nombre VARCHAR(50) UNIQUE NOT NULL,
+                              descripcion VARCHAR(200)
+);
+
+CREATE TABLE security.usuario_rol (
+                                      id_usuario INT NOT NULL,
+                                      id_rol INT NOT NULL,
+
+                                      PRIMARY KEY(id_usuario, id_rol),
+
+                                      CONSTRAINT fk_usuario_rol_usuario
+                                          FOREIGN KEY(id_usuario)
+                                              REFERENCES security.usuario(id_usuario),
+
+                                      CONSTRAINT fk_usuario_rol_rol
+                                          FOREIGN KEY(id_rol)
+                                              REFERENCES security.rol(id_rol)
+);
+
+-- =========================================================
+-- CLIENTES
+-- =========================================================
+
+CREATE TABLE clientes.cliente (
+                                  id_cliente SERIAL PRIMARY KEY,
+                                  codigo_cliente VARCHAR(20) UNIQUE NOT NULL,
+                                  dpi VARCHAR(20) UNIQUE NOT NULL,
+                                  nombres VARCHAR(100) NOT NULL,
+                                  apellidos VARCHAR(100) NOT NULL,
+                                  fecha_nacimiento DATE,
+                                  correo VARCHAR(100),
+                                  telefono VARCHAR(20),
+                                  direccion TEXT,
+                                  estado_cliente VARCHAR(30) DEFAULT 'ACTIVO',
+                                  fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Relación entre cliente y usuario digital
+
+CREATE TABLE clientes.cliente_usuario (
+                                          id_cliente INT NOT NULL,
+                                          id_usuario INT NOT NULL,
+
+                                          PRIMARY KEY(id_cliente, id_usuario),
+
+                                          CONSTRAINT fk_cliente_usuario_cliente
+                                              FOREIGN KEY(id_cliente)
+                                                  REFERENCES clientes.cliente(id_cliente),
+
+                                          CONSTRAINT fk_cliente_usuario_usuario
+                                              FOREIGN KEY(id_usuario)
+                                                  REFERENCES security.usuario(id_usuario)
+);
+
+-- =========================================================
+-- PRODUCTOS
+-- =========================================================
+
+CREATE TABLE productos.tipo_producto (
+                                         id_tipo_producto SERIAL PRIMARY KEY,
+                                         nombre VARCHAR(50) UNIQUE NOT NULL,
+                                         descripcion VARCHAR(200)
+);
+
+-- =========================================================
+-- CUENTAS BANCARIAS
+-- =========================================================
+
+CREATE TABLE productos.cuenta (
+                                  id_cuenta SERIAL PRIMARY KEY,
+                                  numero_cuenta VARCHAR(30) UNIQUE NOT NULL,
+                                  id_cliente INT NOT NULL,
+
+                                  tipo_cuenta VARCHAR(30) NOT NULL,
+                                  saldo NUMERIC(15,2) DEFAULT 0.00,
+                                  estado VARCHAR(20) DEFAULT 'ACTIVA',
+
+                                  fecha_apertura TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                  CONSTRAINT fk_cuenta_cliente
+                                      FOREIGN KEY(id_cliente)
+                                          REFERENCES clientes.cliente(id_cliente)
+);
+
+-- =========================================================
+-- TARJETAS
+-- =========================================================
+
+CREATE TABLE productos.tarjeta (
+                                   id_tarjeta SERIAL PRIMARY KEY,
+
+                                   id_cliente INT NOT NULL,
+
+                                   numero_tarjeta VARCHAR(20) UNIQUE NOT NULL,
+                                   tipo_tarjeta VARCHAR(30),
+                                   limite_credito NUMERIC(15,2),
+                                   saldo_utilizado NUMERIC(15,2) DEFAULT 0.00,
+
+                                   estado VARCHAR(20) DEFAULT 'ACTIVA',
+
+                                   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                   CONSTRAINT fk_tarjeta_cliente
+                                       FOREIGN KEY(id_cliente)
+                                           REFERENCES clientes.cliente(id_cliente)
+);
+
+-- =========================================================
+-- PRÉSTAMOS
+-- =========================================================
+
+CREATE TABLE productos.prestamo (
+                                    id_prestamo SERIAL PRIMARY KEY,
+
+                                    id_cliente INT NOT NULL,
+
+                                    monto NUMERIC(15,2) NOT NULL,
+                                    saldo_pendiente NUMERIC(15,2) NOT NULL,
+                                    tasa_interes NUMERIC(5,2),
+
+                                    plazo_meses INT,
+
+                                    estado VARCHAR(20) DEFAULT 'ACTIVO',
+
+                                    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                    CONSTRAINT fk_prestamo_cliente
+                                        FOREIGN KEY(id_cliente)
+                                            REFERENCES clientes.cliente(id_cliente)
+);
+
+-- =========================================================
+-- TRANSACCIONES
+-- =========================================================
+
+CREATE TABLE transacciones.transaccion (
+                                           id_transaccion SERIAL PRIMARY KEY,
+
+                                           cuenta_origen INT,
+                                           cuenta_destino INT,
+
+                                           tipo_transaccion VARCHAR(30) NOT NULL,
+
+                                           monto NUMERIC(15,2) NOT NULL,
+
+                                           descripcion TEXT,
+
+                                           fecha_transaccion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                           CONSTRAINT fk_transaccion_cuenta_origen
+                                               FOREIGN KEY(cuenta_origen)
+                                                   REFERENCES productos.cuenta(id_cuenta),
+
+                                           CONSTRAINT fk_transaccion_cuenta_destino
+                                               FOREIGN KEY(cuenta_destino)
+                                                   REFERENCES productos.cuenta(id_cuenta)
+);
+
+-- =========================================================
+-- RECLAMOS
+-- =========================================================
+
+CREATE TABLE servicio_cliente.reclamo (
+                                          id_reclamo SERIAL PRIMARY KEY,
+
+                                          id_cliente INT NOT NULL,
+
+                                          tipo_reclamo VARCHAR(100),
+                                          descripcion TEXT,
+
+                                          estado VARCHAR(30) DEFAULT 'ABIERTO',
+
+                                          fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                          CONSTRAINT fk_reclamo_cliente
+                                              FOREIGN KEY(id_cliente)
+                                                  REFERENCES clientes.cliente(id_cliente)
+);
+
+-- =========================================================
+-- HISTORIAL DE ATENCIÓN
+-- =========================================================
+
+CREATE TABLE servicio_cliente.historial_atencion (
+                                                     id_historial SERIAL PRIMARY KEY,
+
+                                                     id_cliente INT NOT NULL,
+                                                     id_usuario INT NOT NULL,
+
+                                                     comentario TEXT,
+
+                                                     fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                                     CONSTRAINT fk_historial_cliente
+                                                         FOREIGN KEY(id_cliente)
+                                                             REFERENCES clientes.cliente(id_cliente),
+
+                                                     CONSTRAINT fk_historial_usuario
+                                                         FOREIGN KEY(id_usuario)
+                                                             REFERENCES security.usuario(id_usuario)
+);
+
+-- =========================================================
+-- AUDITORÍA
+-- =========================================================
+
+CREATE TABLE auditoria.bitacora (
+                                    id_bitacora SERIAL PRIMARY KEY,
+
+                                    id_usuario INT NOT NULL,
+
+                                    accion VARCHAR(100) NOT NULL,
+                                    tabla_afectada VARCHAR(100),
+                                    descripcion TEXT,
+
+                                    fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                                    CONSTRAINT fk_bitacora_usuario
+                                        FOREIGN KEY(id_usuario)
+                                            REFERENCES security.usuario(id_usuario)
+);
+
+-- =========================================================
+-- INSERCIÓN DE ROLES
+-- =========================================================
+
+INSERT INTO security.rol(nombre, descripcion)
+VALUES
+    ('ADMIN', 'Administrador del sistema'),
+    ('CAJERO', 'Usuario cajero'),
+    ('SUPERVISOR', 'Supervisor bancario'),
+    ('CLIENTE', 'Cliente de banca virtual');
+
+-- =========================================================
+-- TIPOS DE PRODUCTOS
+-- =========================================================
+
+INSERT INTO productos.tipo_producto(nombre, descripcion)
+VALUES
+    ('CUENTA_AHORRO', 'Cuenta de ahorro'),
+    ('CUENTA_MONETARIA', 'Cuenta monetaria'),
+    ('TARJETA_CREDITO', 'Tarjeta de crédito'),
+    ('PRESTAMO', 'Préstamo bancario');
+
+-- =========================================================
+-- USUARIO ADMIN INICIAL
+-- password: admin123
+-- Luego debes encriptarla con BCrypt en Spring Security
+-- =========================================================
+
+INSERT INTO security.usuario(
+    username,
+    password
+)
+VALUES(
+          'admin',
+          '$2a$10$abcdefghijklmnopqrstuv'
+      );
+
+INSERT INTO security.usuario_rol(
+    id_usuario,
+    id_rol
+)
+VALUES(
+          1,
+          1
+      );
+
+CREATE SEQUENCE clientes.seq_codigo_cliente
+    START 1
+    INCREMENT 1;
+
+CREATE SEQUENCE productos.seq_numero_cuenta
+    START 1
+    INCREMENT 1;
+
+
+CREATE OR REPLACE FUNCTION clientes.fn_generar_codigo_cliente()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+
+    NEW.codigo_cliente :=
+            'CLI-' ||
+            LPAD(
+                    NEXTVAL('clientes.seq_codigo_cliente')::TEXT,
+                    6,
+                    '0'
+            );
+
+    RETURN NEW;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_codigo_cliente
+    BEFORE INSERT ON clientes.cliente
+    FOR EACH ROW
+EXECUTE FUNCTION clientes.fn_generar_codigo_cliente();
+
+CREATE OR REPLACE FUNCTION productos.fn_generar_numero_cuenta()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+
+    NEW.numero_cuenta :=
+            '0101' ||
+            TO_CHAR(CURRENT_DATE, 'YYYY') ||
+            LPAD(
+                    NEXTVAL('productos.seq_numero_cuenta')::TEXT,
+                    6,
+                    '0'
+            );
+
+    RETURN NEW;
+
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_numero_cuenta
+    BEFORE INSERT ON productos.cuenta
+    FOR EACH ROW
+EXECUTE FUNCTION productos.fn_generar_numero_cuenta();
+
+CREATE OR REPLACE PROCEDURE transacciones.sp_transferencia(
+    IN p_cuenta_origen VARCHAR,
+    IN p_cuenta_destino VARCHAR,
+    IN p_monto NUMERIC(15,2),
+    IN p_descripcion TEXT
+)
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+
+    v_id_cuenta_origen INT;
+    v_id_cuenta_destino INT;
+
+    v_saldo_origen NUMERIC(15,2);
+
+BEGIN
+
+    -- ============================================
+    -- VALIDAR MONTO
+    -- ============================================
+
+    IF p_monto <= 0 THEN
+        RAISE EXCEPTION 'El monto debe ser mayor a cero';
+    END IF;
+
+    -- ============================================
+    -- OBTENER CUENTA ORIGEN
+    -- ============================================
+
+    SELECT
+        id_cuenta,
+        saldo
+    INTO
+        v_id_cuenta_origen,
+        v_saldo_origen
+    FROM productos.cuenta
+    WHERE numero_cuenta = p_cuenta_origen
+      AND estado = 'ACTIVA';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Cuenta origen no existe o está inactiva';
+    END IF;
+
+    -- ============================================
+    -- OBTENER CUENTA DESTINO
+    -- ============================================
+
+    SELECT
+        id_cuenta
+    INTO
+        v_id_cuenta_destino
+    FROM productos.cuenta
+    WHERE numero_cuenta = p_cuenta_destino
+      AND estado = 'ACTIVA';
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Cuenta destino no existe o está inactiva';
+    END IF;
+
+    -- ============================================
+    -- VALIDAR SALDO
+    -- ============================================
+
+    IF v_saldo_origen < p_monto THEN
+        RAISE EXCEPTION 'Saldo insuficiente';
+    END IF;
+
+    -- ============================================
+    -- DEBITAR CUENTA ORIGEN
+    -- ============================================
+
+    UPDATE productos.cuenta
+    SET saldo = saldo - p_monto
+    WHERE id_cuenta = v_id_cuenta_origen;
+
+    -- ============================================
+    -- ACREDITAR CUENTA DESTINO
+    -- ============================================
+
+    UPDATE productos.cuenta
+    SET saldo = saldo + p_monto
+    WHERE id_cuenta = v_id_cuenta_destino;
+
+    -- ============================================
+    -- REGISTRAR TRANSACCIÓN
+    -- ============================================
+
+    INSERT INTO transacciones.transaccion(
+        cuenta_origen,
+        cuenta_destino,
+        tipo_transaccion,
+        monto,
+        descripcion
+    )
+    VALUES(
+              v_id_cuenta_origen,
+              v_id_cuenta_destino,
+              'TRANSFERENCIA',
+              p_monto,
+              p_descripcion
+          );
+
+END;
+$$;
+
+
+
+select * from security.usuario;
+ALTER TABLE security.usuario
+    ADD COLUMN telefono VARCHAR(20),
+    ADD COLUMN direccion varchar(150);
+
+
+select * from clientes.cliente
+
+-- SECUENCIA PARA RECLAMOS
+-- =========================================================
+
+CREATE SEQUENCE servicio_cliente.seq_numero_reclamo
+    START 1
+    INCREMENT 1
+    MINVALUE 1
+    NO MAXVALUE
+    CACHE 1;
+
+-- =========================================================
+-- FUNCIÓN PARA GENERAR CÓDIGO DE RECLAMO
+-- FORMATO:
+-- REC-2026-000001
+-- =========================================================
+
+CREATE OR REPLACE FUNCTION servicio_cliente.fn_generar_codigo_reclamo()
+    RETURNS TRIGGER AS
+$$
+BEGIN
+
+    NEW.codigo_reclamo :=
+            'CAS-' ||
+            TO_CHAR(CURRENT_DATE, 'YYYY') ||
+            '-' ||
+            LPAD(
+                    NEXTVAL('servicio_cliente.seq_numero_reclamo')::TEXT,
+                    6,
+                    '0'
+            );
+
+    RETURN NEW;
+
+END;
+$$ LANGUAGE plpgsql;
+
+-- =========================================================
+-- AGREGAR COLUMNA CÓDIGO RECLAMO
+-- =========================================================
+
+ALTER TABLE servicio_cliente.reclamo
+    ADD COLUMN codigo_reclamo VARCHAR(30) UNIQUE;
+
+-- =========================================================
+-- TRIGGER RECLAMO
+-- =========================================================
+
+CREATE TRIGGER trg_generar_codigo_reclamo
+    BEFORE INSERT ON servicio_cliente.reclamo
+    FOR EACH ROW
+EXECUTE FUNCTION servicio_cliente.fn_generar_codigo_reclamo();
+
+
+select * from servicio_cliente.reclamo;
+select * from productos.prestamo;
+select * from security.usuario;
+select * from security.usuario_rol;
+SELECT * FROM clientes.cliente_usuario;
+select * from clientes.cliente;
+select * from productos.cuenta;
+-- Si no existe tabla
+CREATE TABLE IF NOT EXISTS transacciones.transfer_token (
+                                                            id_token VARCHAR(36) PRIMARY KEY,
+                                                            token_hash VARCHAR(64) NOT NULL,
+                                                            id_usuario INT,
+                                                            cuenta_origen VARCHAR(30),
+                                                            cuenta_destino VARCHAR(30),
+                                                            monto NUMERIC(15,2),
+                                                            created_at TIMESTAMP,
+                                                            expires_at TIMESTAMP,
+                                                            used BOOLEAN DEFAULT FALSE
+);
+
+
+SELECT * FROM security.usuario;
+
+ALTER TABLE security.usuario
+ADD COLUMN nombres VARCHAR(255),
+ADD COLUMN apellidos VARCHAR(255),
+ADD COLUMN correo VARCHAR(255);
+
+ALTER TABLE servicio
+
+
+
+
